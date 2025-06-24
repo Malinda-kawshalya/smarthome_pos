@@ -70,7 +70,7 @@ const Dashboard = () => {
         <div className="header-left">
           <div className="logo">
             <Package className="logo-icon" />
-            <span className="logo-text">InventoryPro</span>
+            <span className="logo-text">SmartHome.lk</span>
           </div>
         </div>
         
