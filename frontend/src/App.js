@@ -6,6 +6,8 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import EmployeeManagement from './pages/employeeManagment';
 import POS from './pages/posInterface';
+import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
 import './App.css';
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
           <Route path="/Sidebar" element={<Sidebar />} />
           <Route path="/employees" element={<EmployeeManagement />} />
           <Route path="/pos" element={<POS />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
           {/* Add more routes as needed */}
           
 
