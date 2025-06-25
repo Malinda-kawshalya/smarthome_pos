@@ -26,7 +26,7 @@ const mockCustomers = [
   { id: 3, name: 'Jane Smith', email: 'jane@example.com', phone: '234-567-8901' },
 ];
 
-const categories = ['All', 'Phones', 'Laptops', 'Tablets', 'Audio', 'Wearables', 'Gaming', 'Smart Home', 'TVs'];
+const categories = ['Phones', 'Laptops', 'Tablets', 'Audio', 'Wearables', 'Gaming', 'Smart Home', 'TVs'];
 
 const POS = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
