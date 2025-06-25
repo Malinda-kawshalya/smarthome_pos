@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { ShoppingCart, Package, AlertTriangle, DollarSign, Users, TrendingUp, Bell, Search, Settings, LogOut } from 'lucide-react';
+import { ShoppingCart, Package, AlertTriangle, DollarSign, TrendingUp } from 'lucide-react';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 import '../style/dashboard.css';
 
 // Mock data for demonstration
@@ -65,88 +67,13 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      {/* Header */}
-      <header className="header">
-        <div className="header-left">
-          <div className="logo">
-            <Package className="logo-icon" />
-            <span className="logo-text">SmartHome.lk</span>
-          </div>
-        </div>
-        
-        <nav className="main-nav">
-          <a href="#" className="nav-link active">Dashboard</a>
-          <a href="#" className="nav-link">Analytics</a>
-          <a href="#" className="nav-link">Orders</a>
-          <a href="#" className="nav-link">Products</a>
-        </nav>
-
-        <div className="header-right">
-          <div className="search-box">
-            <Search className="search-icon" />
-            <input type="text" placeholder="Search..." className="search-input" />
-          </div>
-          
-          <div className="header-actions">
-            <button className="icon-btn notification-btn">
-              <Bell />
-              {notifications > 0 && <span className="notification-badge">{notifications}</span>}
-            </button>
-            <button className="icon-btn">
-              <Settings />
-            </button>
-          </div>
-
-          <div className="user-profile">
-            <div className="user-avatar">AD</div>
-            <div className="user-info">
-              <span className="user-name">Admin User</span>
-              <span className="user-role">Administrator</span>
-            </div>
-            <button className="icon-btn logout-btn">
-              <LogOut />
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header notifications={notifications} />
 
       <div className="main-content">
-        {/* Sidebar */}
-        <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-          <button 
-            className="sidebar-toggle"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            ☰
-          </button>
-          
-          <nav className="sidebar-nav">
-            <a href="#" className="sidebar-link active">
-              <TrendingUp className="sidebar-icon" />
-              {!sidebarCollapsed && <span>Dashboard</span>}
-            </a>
-            <a href="#" className="sidebar-link">
-              <Package className="sidebar-icon" />
-              {!sidebarCollapsed && <span>Stock</span>}
-            </a>
-            <a href="#" className="sidebar-link">
-              <Users className="sidebar-icon" />
-              {!sidebarCollapsed && <span>Employees</span>}
-            </a>
-            <a href="#" className="sidebar-link">
-              <ShoppingCart className="sidebar-icon" />
-              {!sidebarCollapsed && <span>POS</span>}
-            </a>
-            <a href="#" className="sidebar-link">
-              <DollarSign className="sidebar-icon" />
-              {!sidebarCollapsed && <span>Pricing</span>}
-            </a>
-            <a href="#" className="sidebar-link">
-              <BarChart className="sidebar-icon" />
-              {!sidebarCollapsed && <span>Reports</span>}
-            </a>
-          </nav>
-        </aside>
+        <Sidebar 
+          collapsed={sidebarCollapsed} 
+          toggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} 
+        />
 
         {/* Main Dashboard Content */}
         <main className="dashboard-main">
@@ -286,8 +213,6 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
-
-
     </div>
   );
 };
