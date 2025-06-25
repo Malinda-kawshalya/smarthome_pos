@@ -5,6 +5,7 @@ import StockManagement from './pages/stockManagement';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import EmployeeManagement from './pages/employeeManagment';
+import POS from './pages/posInterface';
 import './App.css';
 
 function App() {
@@ -18,7 +19,9 @@ function App() {
           <Route path="/header" element={<Header />} />
           <Route path="/Sidebar" element={<Sidebar />} />
           <Route path="/employees" element={<EmployeeManagement />} />
+          <Route path="/pos" element={<POS />} />
           {/* Add more routes as needed */}
+          
 
         </Routes>
       </Router>
