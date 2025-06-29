@@ -470,8 +470,79 @@ const AdminDashboard = () => {
 
         {activeTab === 'sales' && (
           <div className="sales-section">
-            <h2>Sales Analytics</h2>
-            <p>Sales reporting and analytics will be implemented here.</p>
+            <div className="analytics-preview">
+              <h2>Sales Analytics</h2>
+              <div className="quick-stats">
+                <div className="quick-stat">
+                  <h4>Today's Sales</h4>
+                  <p className="stat-value">$2,347</p>
+                  <span className="stat-change positive">+8.2%</span>
+                </div>
+                <div className="quick-stat">
+                  <h4>This Week</h4>
+                  <p className="stat-value">$15,890</p>
+                  <span className="stat-change positive">+12.5%</span>
+                </div>
+                <div className="quick-stat">
+                  <h4>This Month</h4>
+                  <p className="stat-value">$67,234</p>
+                  <span className="stat-change negative">-3.1%</span>
+                </div>
+                <div className="quick-stat">
+                  <h4>Avg Order</h4>
+                  <p className="stat-value">$67.94</p>
+                  <span className="stat-change positive">+15.3%</span>
+                </div>
+              </div>
+              
+              <div className="recent-transactions">
+                <h3>Recent Transactions</h3>
+                <div className="transaction-list">
+                  <div className="transaction-item">
+                    <div className="transaction-info">
+                      <span className="transaction-id">#TXN-2024-0156</span>
+                      <span className="transaction-time">2 minutes ago</span>
+                    </div>
+                    <div className="transaction-amount">$149.99</div>
+                    <div className="transaction-status completed">Completed</div>
+                  </div>
+                  <div className="transaction-item">
+                    <div className="transaction-info">
+                      <span className="transaction-id">#TXN-2024-0155</span>
+                      <span className="transaction-time">5 minutes ago</span>
+                    </div>
+                    <div className="transaction-amount">$89.99</div>
+                    <div className="transaction-status completed">Completed</div>
+                  </div>
+                  <div className="transaction-item">
+                    <div className="transaction-info">
+                      <span className="transaction-id">#TXN-2024-0154</span>
+                      <span className="transaction-time">8 minutes ago</span>
+                    </div>
+                    <div className="transaction-amount">$234.50</div>
+                    <div className="transaction-status pending">Pending</div>
+                  </div>
+                  <div className="transaction-item">
+                    <div className="transaction-info">
+                      <span className="transaction-id">#TXN-2024-0153</span>
+                      <span className="transaction-time">12 minutes ago</span>
+                    </div>
+                    <div className="transaction-amount">$67.25</div>
+                    <div className="transaction-status completed">Completed</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="analytics-actions">
+                <button className="analytics-btn primary">
+                  <TrendingUp size={18} />
+                  View Full Analytics
+                </button>
+                <button className="analytics-btn secondary">
+                  Generate Sales Report
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

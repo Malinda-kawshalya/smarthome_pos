@@ -8,6 +8,7 @@ import EmployeeManagement from './pages/employeeManagment';
 import POS from './pages/posInterface';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
+import Analytics from './pages/Analytics';
 import './App.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <Route path="/pos" element={<POS />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          <Route path='/analytics' element={<Analytics />} />
           {/* Add more routes as needed */}
           
 
