@@ -26,15 +26,7 @@ const Header = ({ notifications = 0 }) => {
           <input type="text" placeholder="Search..." className="search-input" />
         </div>
         
-        <div className="header-actions">
-          <button className="icon-btn notification-btn">
-            <Bell />
-            {notifications > 0 && <span className="notification-badge">{notifications}</span>}
-          </button>
-          <button className="icon-btn">
-            <Settings />
-          </button>
-        </div>
+
 
         <div className="user-profile">
           <div className="user-avatar">AD</div>
