@@ -61,198 +61,228 @@ const EmployeeManagement = () => {
   return (
     <div className="employee-management-container">
       <Header notifications={notifications} />
-      <div className="main-content">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          toggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-        <main className="employee-management-main">
-          <div className="employee-header">
-            <h1>EMPLOYEE MANAGEMENT</h1>
+      <Sidebar
+        collapsed={sidebarCollapsed}
+        toggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+      
+      <div className={`employee-management-page ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <div className="employee-header">
+          <div className="header-left">
+            <h1>Employee Management</h1>
+            <p>Manage your team members and their roles</p>
           </div>
-          <div className="action-buttons">
-            <button className="action-btn add-btn" onClick={() => setIsAddModalOpen(true)}>
-              <Plus size={16} /> Add Employee
-            </button>
-            <button className="action-btn export-btn">
-              <Download size={16} /> Export
-            </button>
-            <button className="action-btn import-btn">
-              <Upload size={16} /> Import
-            </button>
-          </div>
-          <div className="filter-section">
-            <div className="search-box">
-              <Search className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search employees..."
-                className="search-input"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
+          <div className="header-stats">
+            <div className="stat-item">
+              <span className="stat-value">{employees.length}</span>
+              <span className="stat-label">Total Employees</span>
             </div>
-            <div className="filter-dropdown">
-              <label>Role:</label>
-              <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-                <option value="">All</option>
-                {roles.map(role => (
-                  <option key={role} value={role}>{role}</option>
-                ))}
-              </select>
-            </div>
-            <div className="filter-dropdown">
-              <label>Status:</label>
-              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                <option value="">All</option>
-                {statuses.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
+            <div className="stat-item">
+              <span className="stat-value">{employees.filter(emp => emp.status === 'Active').length}</span>
+              <span className="stat-label">Active</span>
             </div>
           </div>
-          <div className="employee-table-container">
-            <table className="employee-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Hire Date</th>
-                  <th>Status</th>
-                  <th>Act</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.map(emp => (
-                  <tr key={emp.id}>
-                    <td>{emp.name}</td>
-                    <td>{emp.role}</td>
-                    <td>{emp.email}</td>
-                    <td>{emp.phone}</td>
-                    <td>{emp.hireDate}</td>
-                    <td>
-                      <span className={`status-badge ${emp.status === 'Active' ? 'active' : 'inactive'}`}>
-                        {emp.status}
-                      </span>
-                    </td>
-                    <td>
+        </div>
+        
+        <div className="action-buttons">
+          <button className="action-btn add-btn" onClick={() => setIsAddModalOpen(true)}>
+            <Plus size={16} /> Add Employee
+          </button>
+          <button className="action-btn export-btn">
+            <Download size={16} /> Export
+          </button>
+          <button className="action-btn import-btn">
+            <Upload size={16} /> Import
+          </button>
+        </div>
+
+        <div className="filter-section">
+          <div className="search-box">
+            <Search className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search employees..."
+              className="search-input"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="filter-dropdown">
+            <label>Role:</label>
+            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+              <option value="">All</option>
+              {roles.map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-dropdown">
+            <label>Status:</label>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+              <option value="">All</option>
+              {statuses.map(status => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="employee-table-container">
+          <table className="employee-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Hire Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map(emp => (
+                <tr key={emp.id}>
+                  <td>
+                    <div className="employee-info">
+                      <div className="employee-name">{emp.name}</div>
+                      <div className="employee-id">ID: {emp.id}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`role-badge ${emp.role.toLowerCase()}`}>
+                      {emp.role}
+                    </span>
+                  </td>
+                  <td>{emp.email}</td>
+                  <td>{emp.phone}</td>
+                  <td>{emp.hireDate}</td>
+                  <td>
+                    <span className={`status-badge ${emp.status === 'Active' ? 'active' : 'inactive'}`}>
+                      {emp.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons-row">
                       <button className="icon-btn edit-btn" title="Edit">
                         <Edit size={16} />
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="pagination">
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="pagination">
+          <button
+            className="pagination-btn"
+            onClick={() => setCurrentPage(currentPage > 1 ? currentPage - 1 : 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
             <button
-              onClick={() => setCurrentPage(currentPage > 1 ? currentPage - 1 : 1)}
-              disabled={currentPage === 1}
+              key={page}
+              className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+              onClick={() => setCurrentPage(page)}
             >
-              Previous
+              {page}
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <button
-                key={page}
-                className={currentPage === page ? 'active' : ''}
-                onClick={() => setCurrentPage(page)}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              onClick={() => setCurrentPage(currentPage < totalPages ? currentPage + 1 : totalPages)}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
-          </div>
-          {isAddModalOpen && (
-            <div className="modal-overlay">
-              <div className="modal">
-                <div className="modal-header">
-                  <h2>Add Employee</h2>
-                  <button className="close-btn" onClick={() => setIsAddModalOpen(false)}>×</button>
+          ))}
+          <button
+            className="pagination-btn"
+            onClick={() => setCurrentPage(currentPage < totalPages ? currentPage + 1 : totalPages)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+
+        {isAddModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <div className="modal-header">
+                <h2>Add Employee</h2>
+                <button className="close-btn" onClick={() => setIsAddModalOpen(false)}>×</button>
+              </div>
+              <form onSubmit={handleAddEmployee}>
+                <div className="form-group">
+                  <label>Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newEmployee.name}
+                    onChange={e => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                  />
                 </div>
-                <form onSubmit={handleAddEmployee}>
+                <div className="form-row">
                   <div className="form-group">
-                    <label>Name</label>
+                    <label>Role</label>
+                    <select
+                      required
+                      value={newEmployee.role}
+                      onChange={e => setNewEmployee({ ...newEmployee, role: e.target.value })}
+                    >
+                      <option value="">Select Role</option>
+                      {roles.map(role => (
+                        <option key={role} value={role}>{role}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      required
+                      value={newEmployee.status}
+                      onChange={e => setNewEmployee({ ...newEmployee, status: e.target.value })}
+                    >
+                      {statuses.map(status => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={newEmployee.email}
+                      onChange={e => setNewEmployee({ ...newEmployee, email: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Phone</label>
                     <input
                       type="text"
                       required
-                      value={newEmployee.name}
-                      onChange={e => setNewEmployee({ ...newEmployee, name: e.target.value })}
+                      value={newEmployee.phone}
+                      onChange={e => setNewEmployee({ ...newEmployee, phone: e.target.value })}
                     />
                   </div>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Role</label>
-                      <select
-                        required
-                        value={newEmployee.role}
-                        onChange={e => setNewEmployee({ ...newEmployee, role: e.target.value })}
-                      >
-                        <option value="">Select Role</option>
-                        {roles.map(role => (
-                          <option key={role} value={role}>{role}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Status</label>
-                      <select
-                        required
-                        value={newEmployee.status}
-                        onChange={e => setNewEmployee({ ...newEmployee, status: e.target.value })}
-                      >
-                        {statuses.map(status => (
-                          <option key={status} value={status}>{status}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Email</label>
-                      <input
-                        type="email"
-                        required
-                        value={newEmployee.email}
-                        onChange={e => setNewEmployee({ ...newEmployee, email: e.target.value })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Phone</label>
-                      <input
-                        type="text"
-                        required
-                        value={newEmployee.phone}
-                        onChange={e => setNewEmployee({ ...newEmployee, phone: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label>Hire Date</label>
-                    <input
-                      type="date"
-                      required
-                      value={newEmployee.hireDate}
-                      onChange={e => setNewEmployee({ ...newEmployee, hireDate: e.target.value })}
-                    />
-                  </div>
-                  <div className="form-actions">
-                    <button type="button" className="cancel-btn" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
-                    <button type="submit" className="submit-btn">Add</button>
-                  </div>
-                </form>
-              </div>
+                </div>
+                <div className="form-group">
+                  <label>Hire Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={newEmployee.hireDate}
+                    onChange={e => setNewEmployee({ ...newEmployee, hireDate: e.target.value })}
+                  />
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="cancel-btn" onClick={() => setIsAddModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="submit-btn">Add Employee</button>
+                </div>
+              </form>
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        )}
+        </div>
     </div>
   );
 };

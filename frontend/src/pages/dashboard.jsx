@@ -68,151 +68,147 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <Header notifications={notifications} />
+      <Sidebar 
+        collapsed={sidebarCollapsed} 
+        toggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} 
+      />
 
-      <div className="main-content">
-        <Sidebar 
-          collapsed={sidebarCollapsed} 
-          toggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} 
-        />
+      <div className={`dashboard-page ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <div className="dashboard-header">
+          <h1>Dashboard</h1>
+          <p className="dashboard-subtitle">
+            Welcome back! Here's what's happening with your store today.
+          </p>
+          <div className="current-time">
+            {currentTime.toLocaleString()}
+          </div>
+        </div>
 
-        {/* Main Dashboard Content */}
-        <main className="dashboard-main">
-          <div className="dashboard-header">
-            <h1>Dashboard</h1>
-            <p className="dashboard-subtitle">
-              Welcome back! Here's what's happening with your store today.
-            </p>
-            <div className="current-time">
-              {currentTime.toLocaleString()}
+        {/* Metrics Cards */}
+        <div className="metrics-grid">
+          <MetricCard
+            title="Total Sales"
+            value="$25,450"
+            icon={DollarSign}
+            color="metric-sales"
+            trend="+12.5%"
+          />
+          <MetricCard
+            title="Total Products"
+            value="1,247"
+            icon={Package}
+            color="metric-products"
+            trend="+3.2%"
+          />
+          <MetricCard
+            title="Low Stock"
+            value="12"
+            icon={AlertTriangle}
+            color="metric-warning"
+            trend="-2"
+          />
+          <MetricCard
+            title="Today's Sales"
+            value="$3,200"
+            icon={TrendingUp}
+            color="metric-today"
+            trend="+8.1%"
+          />
+        </div>
+
+        {/* Charts Section */}
+        <div className="charts-section">
+          <div className="chart-container">
+            <div className="chart-header">
+              <h2>Recent Sales</h2>
+              <div className="chart-controls">
+                <select className="chart-select">
+                  <option>Last 7 days</option>
+                  <option>Last 30 days</option>
+                  <option>Last 3 months</option>
+                </select>
+              </div>
+            </div>
+            <div className="chart-content">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={mockSalesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line 
+                    type="monotone" 
+                    dataKey="sales" 
+                    stroke="#3b82f6" 
+                    strokeWidth={3}
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Metrics Cards */}
-          <div className="metrics-grid">
-            <MetricCard
-              title="Total Sales"
-              value="$25,450"
-              icon={DollarSign}
-              color="metric-sales"
-              trend="+12.5%"
-            />
-            <MetricCard
-              title="Total Products"
-              value="1,247"
-              icon={Package}
-              color="metric-products"
-              trend="+3.2%"
-            />
-            <MetricCard
-              title="Low Stock"
-              value="12"
-              icon={AlertTriangle}
-              color="metric-warning"
-              trend="-2"
-            />
-            <MetricCard
-              title="Today's Sales"
-              value="$3,200"
-              icon={TrendingUp}
-              color="metric-today"
-              trend="+8.1%"
-            />
-          </div>
-
-          {/* Charts Section */}
-          <div className="charts-section">
-            <div className="chart-container">
-              <div className="chart-header">
-                <h2>Recent Sales</h2>
-                <div className="chart-controls">
-                  <select className="chart-select">
-                    <option>Last 7 days</option>
-                    <option>Last 30 days</option>
-                    <option>Last 3 months</option>
-                  </select>
-                </div>
-              </div>
-              <div className="chart-content">
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={mockSalesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sales" 
-                      stroke="#3b82f6" 
-                      strokeWidth={3}
-                      dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+          <div className="low-stock-panel">
+            <div className="panel-header">
+              <h3>Low Stock Alerts</h3>
+              <span className="alert-count">{lowStockItems.length}</span>
+            </div>
+            <div className="low-stock-list">
+              {lowStockItems.map((item, index) => (
+                <div key={index} className="low-stock-item">
+                  <div className="item-info">
+                    <span className="item-name">{item.name}</span>
+                    <span className="stock-info">
+                      {item.stock} left (min: {item.threshold})
+                    </span>
+                  </div>
+                  <div className="urgency-indicator">
+                    <div 
+                      className="urgency-bar"
+                      style={{ 
+                        width: `${(item.stock / item.threshold) * 100}%`,
+                        backgroundColor: item.stock <= 2 ? '#ef4444' : '#f59e0b'
+                      }}
                     />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="low-stock-panel">
-              <div className="panel-header">
-                <h3>Low Stock Alerts</h3>
-                <span className="alert-count">{lowStockItems.length}</span>
-              </div>
-              <div className="low-stock-list">
-                {lowStockItems.map((item, index) => (
-                  <div key={index} className="low-stock-item">
-                    <div className="item-info">
-                      <span className="item-name">{item.name}</span>
-                      <span className="stock-info">
-                        {item.stock} left (min: {item.threshold})
-                      </span>
-                    </div>
-                    <div className="urgency-indicator">
-                      <div 
-                        className="urgency-bar"
-                        style={{ 
-                          width: `${(item.stock / item.threshold) * 100}%`,
-                          backgroundColor: item.stock <= 2 ? '#ef4444' : '#f59e0b'
-                        }}
-                      />
-                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
+        </div>
 
-          {/* Recent Transactions */}
-          <div className="transactions-section">
-            <div className="section-header">
-              <h2>Recent Transactions</h2>
-              <button className="view-all-btn">View All</button>
+        {/* Recent Transactions */}
+        <div className="transactions-section">
+          <div className="section-header">
+            <h2>Recent Transactions</h2>
+            <button className="view-all-btn">View All</button>
+          </div>
+          <div className="transactions-table">
+            <div className="table-header">
+              <div className="th">Invoice</div>
+              <div className="th">Customer</div>
+              <div className="th">Amount</div>
+              <div className="th">Date</div>
+              <div className="th">Status</div>
             </div>
-            <div className="transactions-table">
-              <div className="table-header">
-                <div className="th">Invoice</div>
-                <div className="th">Customer</div>
-                <div className="th">Amount</div>
-                <div className="th">Date</div>
-                <div className="th">Status</div>
-              </div>
-              <div className="table-body">
-                {mockTransactions.map((transaction) => (
-                  <div key={transaction.id} className="table-row">
-                    <div className="td invoice-id">{transaction.id}</div>
-                    <div className="td">{transaction.customer}</div>
-                    <div className="td amount">${transaction.amount}</div>
-                    <div className="td">{transaction.date}</div>
-                    <div className="td">
-                      <span className={`status-badge ${getStatusClass(transaction.status)}`}>
-                        {transaction.status}
-                      </span>
-                    </div>
+            <div className="table-body">
+              {mockTransactions.map((transaction) => (
+                <div key={transaction.id} className="table-row">
+                  <div className="td invoice-id">{transaction.id}</div>
+                  <div className="td">{transaction.customer}</div>
+                  <div className="td amount">${transaction.amount}</div>
+                  <div className="td">{transaction.date}</div>
+                  <div className="td">
+                    <span className={`status-badge ${getStatusClass(transaction.status)}`}>
+                      {transaction.status}
+                    </span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+        </div>
     </div>
   );
 };
