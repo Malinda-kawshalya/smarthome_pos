@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Package, Users, ShoppingCart, DollarSign, BarChart, BarChart3, ShoppingBag } from 'lucide-react';
+import { TrendingUp, Package, Users, ShoppingCart, DollarSign, BarChart, BarChart3, ShoppingBag, Box } from 'lucide-react';
 import '../style/sidebar.css';
 
 const Sidebar = ({ collapsed, toggleCollapse }) => {
@@ -25,6 +25,10 @@ const Sidebar = ({ collapsed, toggleCollapse }) => {
         <Link to="/orders" className="sidebar-link">
           <ShoppingBag className="sidebar-icon" />
           {!collapsed && <span>Orders</span>}
+        </Link>
+        <Link to="/products" className="sidebar-link">
+          <Box className="sidebar-icon" />
+          {!collapsed && <span>Products</span>}
         </Link>
         <Link to="/stock" className="sidebar-link">
           <Package className="sidebar-icon" />
