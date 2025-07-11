@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
+import { productAPI } from '../services/api';
 import '../style/products.css';
 
 const Products = () => {
@@ -36,6 +37,10 @@ const Products = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(12);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -47,6 +52,7 @@ const Products = () => {
     description: '',
     supplier: '',
     sku: '',
+    costPrice: '',
     status: 'active'
   });
 
@@ -57,213 +63,169 @@ const Products = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
-  // Mock products data
-  useEffect(() => {
-    const mockProducts = [
-      {
-        id: 1,
-        name: 'Smart Thermostat Pro',
-        category: 'Climate',
-        price: 199.99,
-        stock: 45,
-        status: 'active',
-        rating: 4.8,
-        sales: 156,
-        image: '/api/placeholder/200/200',
-        sku: 'STP-001',
-        supplier: 'TechHome Inc.',
-        description: 'Advanced smart thermostat with AI learning capabilities and energy saving features.',
-        featured: true
-      },
-      {
-        id: 2,
-        name: 'Security Camera 4K',
-        category: 'Security',
-        price: 89.99,
-        stock: 23,
-        status: 'active',
-        rating: 4.6,
-        sales: 203,
-        image: '/api/placeholder/200/200',
-        sku: 'SC4K-002',
-        supplier: 'SecureVision Ltd.',
-        description: '4K resolution security camera with night vision and motion detection.',
-        featured: false
-      },
-      {
-        id: 3,
-        name: 'Smart Lock Elite',
-        category: 'Security',
-        price: 149.99,
-        stock: 12,
-        status: 'active',
-        rating: 4.9,
-        sales: 98,
-        image: '/api/placeholder/200/200',
-        sku: 'SLE-003',
-        supplier: 'LockTech Pro',
-        description: 'Premium smart lock with fingerprint and facial recognition technology.',
-        featured: true
-      },
-      {
-        id: 4,
-        name: 'LED Smart Bulbs (4-pack)',
-        category: 'Lighting',
-        price: 29.99,
-        stock: 0,
-        status: 'out-of-stock',
-        rating: 4.4,
-        sales: 342,
-        image: '/api/placeholder/200/200',
-        sku: 'LSB-004',
-        supplier: 'BrightLight Solutions',
-        description: 'Color-changing LED smart bulbs with voice control and app integration.',
-        featured: false
-      },
-      {
-        id: 5,
-        name: 'Motion Sensor Advanced',
-        category: 'Security',
-        price: 39.99,
-        stock: 67,
-        status: 'active',
-        rating: 4.3,
-        sales: 178,
-        image: '/api/placeholder/200/200',
-        sku: 'MSA-005',
-        supplier: 'SensorTech Corp',
-        description: 'Advanced motion sensor with pet immunity and wireless connectivity.',
-        featured: false
-      },
-      {
-        id: 6,
-        name: 'Smart Speaker Hub',
-        category: 'Audio',
-        price: 79.99,
-        stock: 34,
-        status: 'active',
-        rating: 4.7,
-        sales: 145,
-        image: '/api/placeholder/200/200',
-        sku: 'SSH-006',
-        supplier: 'AudioSmart Inc.',
-        description: 'Voice-controlled smart speaker with built-in home automation hub.',
-        featured: true
-      },
-      {
-        id: 7,
-        name: 'Smart Doorbell Pro',
-        category: 'Security',
-        price: 159.99,
-        stock: 18,
-        status: 'active',
-        rating: 4.5,
-        sales: 87,
-        image: '/api/placeholder/200/200',
-        sku: 'SDP-007',
-        supplier: 'DoorTech Solutions',
-        description: 'Premium video doorbell with two-way audio and cloud storage.',
-        featured: false
-      },
-      {
-        id: 8,
-        name: 'WiFi Router Mesh',
-        category: 'Networking',
-        price: 249.99,
-        stock: 28,
-        status: 'active',
-        rating: 4.6,
-        sales: 76,
-        image: '/api/placeholder/200/200',
-        sku: 'WRM-008',
-        supplier: 'NetConnect Pro',
-        description: 'High-speed mesh router system for whole-home coverage.',
-        featured: false
-      }
-    ];
-    setProducts(mockProducts);
-    setFilteredProducts(mockProducts);
-  }, []);
-
-  // Filter and search products
-  useEffect(() => {
-    let filtered = products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.category.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-      const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-      
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
-
-    // Sort products
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'price':
-          return a.price - b.price;
-        case 'stock':
-          return b.stock - a.stock;
-        case 'sales':
-          return b.sales - a.sales;
-        case 'rating':
-          return b.rating - a.rating;
-        default:
-          return 0;
-      }
-    });
+  // Fetch products from API
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
     
-    setFilteredProducts(filtered);
-    setCurrentPage(1);
-  }, [searchTerm, categoryFilter, statusFilter, sortBy, products]);
+    try {
+      const params = {
+        page: currentPage,
+        limit: productsPerPage,
+        ...(searchTerm && { search: searchTerm }),
+        ...(categoryFilter !== 'all' && { category: categoryFilter }),
+        ...(statusFilter !== 'all' && { status: statusFilter }),
+      };
 
-  const handleAddProduct = (e) => {
+      const response = await productAPI.getProducts(params);
+      
+      if (response.success) {
+        setProducts(response.data);
+        setFilteredProducts(response.data);
+        setTotalPages(response.pages);
+        setTotalProducts(response.total);
+      } else {
+        setError(response.message || 'Failed to fetch products');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to fetch products');
+      console.error('Error fetching products:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchProducts();
+  }, [currentPage, productsPerPage]);
+
+  // Filter and search products (now triggers API call)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setCurrentPage(1);
+      fetchProducts();
+    }, 500); // Debounce search
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, categoryFilter, statusFilter]);
+
+  const handleAddProduct = async (e) => {
     e.preventDefault();
-    const product = {
-      id: products.length + 1,
-      ...newProduct,
-      price: parseFloat(newProduct.price),
-      stock: parseInt(newProduct.stock),
-      rating: 0,
-      sales: 0,
-      image: '/api/placeholder/200/200',
-      featured: false
-    };
-    setProducts([...products, product]);
-    setShowAddModal(false);
-    setNewProduct({
-      name: '',
-      category: '',
-      price: '',
-      stock: '',
-      description: '',
-      supplier: '',
-      sku: '',
-      status: 'active'
-    });
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const productData = {
+        ...newProduct,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        costPrice: parseFloat(newProduct.costPrice),
+      };
+      
+      const response = await productAPI.createProduct(productData);
+      
+      if (response.success) {
+        setShowAddModal(false);
+        setNewProduct({
+          name: '',
+          category: '',
+          price: '',
+          stock: '',
+          description: '',
+          supplier: '',
+          sku: '',
+          costPrice: '',
+          status: 'active'
+        });
+        fetchProducts(); // Refresh the product list
+      } else {
+        setError(response.message || 'Failed to create product');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to create product');
+      console.error('Error creating product:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
-    setNewProduct(product);
+    setNewProduct({
+      name: product.name,
+      category: product.category,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      description: product.description || '',
+      supplier: product.supplier || '',
+      sku: product.sku,
+      costPrice: product.costPrice?.toString() || '',
+      status: product.status
+    });
     setShowEditModal(true);
   };
 
-  const handleUpdateProduct = (e) => {
+  const handleUpdateProduct = async (e) => {
     e.preventDefault();
-    setProducts(products.map(p => 
-      p.id === selectedProduct.id ? { ...p, ...newProduct } : p
-    ));
-    setShowEditModal(false);
-    setSelectedProduct(null);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const productData = {
+        ...newProduct,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        costPrice: parseFloat(newProduct.costPrice),
+      };
+      
+      const response = await productAPI.updateProduct(selectedProduct._id, productData);
+      
+      if (response.success) {
+        setShowEditModal(false);
+        setSelectedProduct(null);
+        setNewProduct({
+          name: '',
+          category: '',
+          price: '',
+          stock: '',
+          description: '',
+          supplier: '',
+          sku: '',
+          costPrice: '',
+          status: 'active'
+        });
+        fetchProducts(); // Refresh the product list
+      } else {
+        setError(response.message || 'Failed to update product');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to update product');
+      console.error('Error updating product:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeleteProduct = (productId) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== productId));
+  const handleDeleteProduct = async (product) => {
+    if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await productAPI.deleteProduct(product._id);
+        
+        if (response.success) {
+          fetchProducts(); // Refresh the product list
+        } else {
+          setError(response.message || 'Failed to delete product');
+        }
+      } catch (err) {
+        setError(err.message || 'Failed to delete product');
+        console.error('Error deleting product:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -294,7 +256,6 @@ const Products = () => {
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -312,7 +273,7 @@ const Products = () => {
           </div>
           <div className="header-stats">
             <div className="stat-item">
-              <span className="stat-value">{products.length}</span>
+              <span className="stat-value">{totalProducts}</span>
               <span className="stat-label">Total Products</span>
             </div>
             <div className="stat-item">
@@ -337,9 +298,9 @@ const Products = () => {
               <Download size={18} />
               Export
             </button>
-            <button className="btn btn-secondary">
-              <RefreshCw size={18} />
-              Refresh
+            <button className="btn btn-secondary" onClick={fetchProducts} disabled={loading}>
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
           
@@ -420,146 +381,164 @@ const Products = () => {
           </div>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="error-message">
+            <AlertTriangle size={18} />
+            <span>{error}</span>
+            <button onClick={() => setError(null)}>×</button>
+          </div>
+        )}
+
         {/* Products Display */}
         <div className={`products-display ${viewMode}`}>
-          {viewMode === 'grid' ? (
-            <div className="products-grid">
-              {currentProducts.map(product => (
-                <div key={product.id} className="product-card">
-                  {product.featured && <span className="featured-badge">Featured</span>}
-                  <div className="product-image">
-                    <img src={product.image} alt={product.name} />
-                    <div className="product-overlay">
-                      <button 
-                        className="overlay-btn"
-                        onClick={() => handleEditProduct(product)}
-                        title="Edit Product"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button 
-                        className="overlay-btn"
-                        onClick={() => handleDeleteProduct(product.id)}
-                        title="Delete Product"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="product-info">
-                    <div className="product-header">
-                      <h3 className="product-name">{product.name}</h3>
-                      <div className={getStatusClass(product.status)}>
-                        {getStatusIcon(product.status)}
-                      </div>
-                    </div>
-                    <div className="product-category">{product.category}</div>
-                    <div className="product-details">
-                      <div className="product-price">${product.price}</div>
-                      <div className="product-rating">
-                        <Star className="star-icon" />
-                        <span>{product.rating}</span>
-                      </div>
-                    </div>
-                    <div className="product-stats">
-                      <div className="stat">
-                        <Package size={14} />
-                        <span>Stock: {product.stock}</span>
-                      </div>
-                      <div className="stat">
-                        <ShoppingCart size={14} />
-                        <span>Sales: {product.sales}</span>
-                      </div>
-                    </div>
-                    <div className="product-sku">SKU: {product.sku}</div>
-                  </div>
-                </div>
-              ))}
+          {loading ? (
+            <div className="loading-spinner">
+              <RefreshCw size={48} className="animate-spin" />
+              <p>Loading products...</p>
             </div>
           ) : (
-            <div className="products-list">
-              <table className="products-table">
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Sales</th>
-                    <th>Rating</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <>
+              {viewMode === 'grid' ? (
+                <div className="products-grid">
                   {currentProducts.map(product => (
-                    <tr key={product.id}>
-                      <td>
-                        <div className="product-cell">
-                          <img src={product.image} alt={product.name} className="product-thumb" />
-                          <div className="product-info-cell">
-                            <div className="product-name-cell">{product.name}</div>
-                            <div className="product-sku-cell">SKU: {product.sku}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="category-badge">{product.category}</span>
-                      </td>
-                      <td>
-                        <span className="price-cell">${product.price}</span>
-                      </td>
-                      <td>
-                        <span className={`stock-cell ${product.stock <= 20 ? 'low' : ''}`}>
-                          {product.stock}
-                        </span>
-                      </td>
-                      <td>
-                        <span className="sales-cell">{product.sales}</span>
-                      </td>
-                      <td>
-                        <div className="rating-cell">
-                          <Star className="star-icon" />
-                          <span>{product.rating}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className={getStatusClass(product.status)}>
-                          {getStatusIcon(product.status)}
-                          <span>{product.status.replace('-', ' ')}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="action-buttons-row">
+                    <div key={product._id} className="product-card">
+                      {product.featured && <span className="featured-badge">Featured</span>}
+                      <div className="product-image">
+                        <img src={product.images?.[0]?.url || '/api/placeholder/200/200'} alt={product.name} />
+                        <div className="product-overlay">
                           <button 
-                            className="btn btn-icon btn-edit"
+                            className="overlay-btn"
                             onClick={() => handleEditProduct(product)}
                             title="Edit Product"
                           >
                             <Edit size={16} />
                           </button>
                           <button 
-                            className="btn btn-icon btn-delete"
-                            onClick={() => handleDeleteProduct(product.id)}
+                            className="overlay-btn"
+                            onClick={() => handleDeleteProduct(product)}
                             title="Delete Product"
                           >
                             <Trash2 size={16} />
                           </button>
                         </div>
-                      </td>
-                    </tr>
+                      </div>
+                      <div className="product-info">
+                        <div className="product-header">
+                          <h3 className="product-name">{product.name}</h3>
+                          <div className={getStatusClass(product.status)}>
+                            {getStatusIcon(product.status)}
+                          </div>
+                        </div>
+                        <div className="product-category">{product.category}</div>
+                        <div className="product-details">
+                          <div className="product-price">${product.price}</div>
+                          <div className="product-rating">
+                            <Star className="star-icon" />
+                            <span>{product.rating || 0}</span>
+                          </div>
+                        </div>
+                        <div className="product-stats">
+                          <div className="stat">
+                            <Package size={14} />
+                            <span>Stock: {product.stock}</span>
+                          </div>
+                          <div className="stat">
+                            <ShoppingCart size={14} />
+                            <span>Sales: {product.sales || 0}</span>
+                          </div>
+                        </div>
+                        <div className="product-sku">SKU: {product.sku}</div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                </div>
+              ) : (
+                <div className="products-list">
+                  <table className="products-table">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Sales</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentProducts.map(product => (
+                        <tr key={product._id}>
+                          <td>
+                            <div className="product-cell">
+                              <img src={product.images?.[0]?.url || '/api/placeholder/200/200'} alt={product.name} className="product-thumb" />
+                              <div className="product-info-cell">
+                                <div className="product-name-cell">{product.name}</div>
+                                <div className="product-sku-cell">SKU: {product.sku}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="category-badge">{product.category}</span>
+                          </td>
+                          <td>
+                            <span className="price-cell">${product.price}</span>
+                          </td>
+                          <td>
+                            <span className={`stock-cell ${product.stock <= 20 ? 'low' : ''}`}>
+                              {product.stock}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="sales-cell">{product.sales || 0}</span>
+                          </td>
+                          <td>
+                            <div className="rating-cell">
+                              <Star className="star-icon" />
+                              <span>{product.rating || 0}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className={getStatusClass(product.status)}>
+                              {getStatusIcon(product.status)}
+                              <span>{product.status.replace('-', ' ')}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="action-buttons-row">
+                              <button 
+                                className="btn btn-icon btn-edit"
+                                onClick={() => handleEditProduct(product)}
+                                title="Edit Product"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button 
+                                className="btn btn-icon btn-delete"
+                                onClick={() => handleDeleteProduct(product)}
+                                title="Delete Product"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
-          {filteredProducts.length === 0 && (
-            <div className="no-products">
-              <Package size={48} />
-              <h3>No Products Found</h3>
-              <p>No products match your current search criteria.</p>
-            </div>
+              {filteredProducts.length === 0 && !loading && (
+                <div className="no-products">
+                  <Package size={48} />
+                  <h3>No Products Found</h3>
+                  <p>No products match your current search criteria.</p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -671,6 +650,19 @@ const Products = () => {
                     />
                   </div>
                   <div className="form-group">
+                    <label>Cost Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={newProduct.costPrice}
+                      onChange={(e) => setNewProduct({...newProduct, costPrice: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
                     <label>Stock Quantity</label>
                     <input
                       type="number"
@@ -679,21 +671,22 @@ const Products = () => {
                       onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
                     />
                   </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Supplier</label>
-                  <input
-                    type="text"
-                    value={newProduct.supplier}
-                    onChange={(e) => setNewProduct({...newProduct, supplier: e.target.value})}
-                  />
+                  <div className="form-group">
+                    <label>Supplier</label>
+                    <input
+                      type="text"
+                      required
+                      value={newProduct.supplier}
+                      onChange={(e) => setNewProduct({...newProduct, supplier: e.target.value})}
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">
                   <label>Description</label>
                   <textarea
                     rows="3"
+                    required
                     value={newProduct.description}
                     onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
                   />
@@ -790,6 +783,19 @@ const Products = () => {
                     />
                   </div>
                   <div className="form-group">
+                    <label>Cost Price ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      value={newProduct.costPrice}
+                      onChange={(e) => setNewProduct({...newProduct, costPrice: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
                     <label>Stock Quantity</label>
                     <input
                       type="number"
@@ -798,21 +804,22 @@ const Products = () => {
                       onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
                     />
                   </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Supplier</label>
-                  <input
-                    type="text"
-                    value={newProduct.supplier}
-                    onChange={(e) => setNewProduct({...newProduct, supplier: e.target.value})}
-                  />
+                  <div className="form-group">
+                    <label>Supplier</label>
+                    <input
+                      type="text"
+                      required
+                      value={newProduct.supplier}
+                      onChange={(e) => setNewProduct({...newProduct, supplier: e.target.value})}
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">
                   <label>Description</label>
                   <textarea
                     rows="3"
+                    required
                     value={newProduct.description}
                     onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
                   />
