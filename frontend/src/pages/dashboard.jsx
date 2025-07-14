@@ -4,43 +4,77 @@ import { ShoppingCart, Package, AlertTriangle, DollarSign, TrendingUp } from 'lu
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import '../style/dashboard.css';
-
-// Mock data for demonstration
-const mockSalesData = [
-  { name: 'Mon', sales: 2400, orders: 24 },
-  { name: 'Tue', sales: 1398, orders: 13 },
-  { name: 'Wed', sales: 9800, orders: 98 },
-  { name: 'Thu', sales: 3908, orders: 39 },
-  { name: 'Fri', sales: 4800, orders: 48 },
-  { name: 'Sat', sales: 3800, orders: 38 },
-  { name: 'Sun', sales: 4300, orders: 43 }
-];
-
-const mockTransactions = [
-  { id: 'INV-001', customer: 'John Doe', amount: 245.50, date: '2024-06-24', status: 'Completed' },
-  { id: 'INV-002', customer: 'Jane Smith', amount: 189.75, date: '2024-06-24', status: 'Pending' },
-  { id: 'INV-003', customer: 'Mike Johnson', amount: 567.25, date: '2024-06-23', status: 'Completed' },
-  { id: 'INV-004', customer: 'Sarah Wilson', amount: 123.00, date: '2024-06-23', status: 'Completed' },
-  { id: 'INV-005', customer: 'Tom Brown', amount: 445.80, date: '2024-06-22', status: 'Refunded' }
-];
-
-const lowStockItems = [
-  { name: 'iPhone 14 Pro', stock: 3, threshold: 10 },
-  { name: 'Samsung Galaxy S23', stock: 2, threshold: 8 },
-  { name: 'MacBook Air M2', stock: 1, threshold: 5 },
-  { name: 'iPad Pro', stock: 4, threshold: 12 }
-];
+import { productAPI } from '../services/api';
 
 const Dashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notifications, setNotifications] = useState(5);
+  const [salesData, setSalesData] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [lowStockItems, setLowStockItems] = useState([]);
+  const [metrics, setMetrics] = useState({
+    totalSales: 0,
+    totalProducts: 0,
+    lowStockCount: 0,
+    todaySales: 0,
+    salesTrend: '0%',
+    productsTrend: '0%',
+    lowStockTrend: '0',
+    todaySalesTrend: '0%'
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch sales data for chart
+        const salesResponse = await fetch('http://localhost:5000/api/analytics/sales');
+        const salesData = await salesResponse.json();
+        setSalesData(salesData);
+        
+        // Fetch recent transactions
+        const transactionsResponse = await fetch('http://localhost:5000/api/transactions/recent');
+        const transactionsData = await transactionsResponse.json();
+        setTransactions(transactionsData);
+        
+        // Fetch low stock items
+        const lowStockResponse = await productAPI.getLowStockProducts();
+        setLowStockItems(lowStockResponse);
+        
+        // Fetch dashboard metrics
+        const metricsResponse = await fetch('http://localhost:5000/api/analytics/metrics');
+        const metricsData = await metricsResponse.json();
+        setMetrics({
+          totalSales: metricsData.totalSales || 0,
+          totalProducts: metricsData.totalProducts || 0,
+          lowStockCount: metricsData.lowStockCount || 0,
+          todaySales: metricsData.todaySales || 0,
+          salesTrend: metricsData.salesTrend || '0%',
+          productsTrend: metricsData.productsTrend || '0%',
+          lowStockTrend: metricsData.lowStockTrend || '0',
+          todaySalesTrend: metricsData.todaySalesTrend || '0%'
+        });
+        
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data');
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   const MetricCard = ({ title, value, icon: Icon, color, trend }) => (
@@ -65,6 +99,14 @@ const Dashboard = () => {
     }
   };
 
+  if (isLoading) {
+    return <div className="loading-container">Loading dashboard data...</div>;
+  }
+
+  if (error) {
+    return <div className="error-container">{error}</div>;
+  }
+
   return (
     <div className="dashboard-container">
       <Header notifications={notifications} />
@@ -88,31 +130,31 @@ const Dashboard = () => {
         <div className="metrics-grid">
           <MetricCard
             title="Total Sales"
-            value="$25,450"
+            value={`$${metrics.totalSales.toLocaleString()}`}
             icon={DollarSign}
             color="metric-sales"
-            trend="+12.5%"
+            trend={metrics.salesTrend}
           />
           <MetricCard
             title="Total Products"
-            value="1,247"
+            value={metrics.totalProducts.toLocaleString()}
             icon={Package}
             color="metric-products"
-            trend="+3.2%"
+            trend={metrics.productsTrend}
           />
           <MetricCard
             title="Low Stock"
-            value="12"
+            value={metrics.lowStockCount}
             icon={AlertTriangle}
             color="metric-warning"
-            trend="-2"
+            trend={metrics.lowStockTrend}
           />
           <MetricCard
             title="Today's Sales"
-            value="$3,200"
+            value={`$${metrics.todaySales.toLocaleString()}`}
             icon={TrendingUp}
             color="metric-today"
-            trend="+8.1%"
+            trend={metrics.todaySalesTrend}
           />
         </div>
 
@@ -131,7 +173,7 @@ const Dashboard = () => {
             </div>
             <div className="chart-content">
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={mockSalesData}>
+                <LineChart data={salesData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -192,7 +234,7 @@ const Dashboard = () => {
               <div className="th">Status</div>
             </div>
             <div className="table-body">
-              {mockTransactions.map((transaction) => (
+              {transactions.map((transaction) => (
                 <div key={transaction.id} className="table-row">
                   <div className="td invoice-id">{transaction.id}</div>
                   <div className="td">{transaction.customer}</div>
@@ -208,7 +250,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-        </div>
+      </div>
     </div>
   );
 };
